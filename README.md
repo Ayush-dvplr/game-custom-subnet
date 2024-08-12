@@ -30,11 +30,6 @@ function randomDiceRoll(address source, uint256 seed) private view returns (uint
 
 This code is implemented in my game a random number range from 1-6.
 
-- Playing stone paper scissor with the System
-- Playing Guess the number with the sytem. (0-4)
-
-Upon winning certain amount of points will be added to the player list and that way the player can climb on the leaderboard
-
 ## Complete Code
 
 ```Solidity
