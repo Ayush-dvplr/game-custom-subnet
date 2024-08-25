@@ -99,3 +99,11 @@ contract DiceDuel is ERC20 {
 }
 
 ```
+##Author 
+
+- Ayush sah[@linkedin](https://www.linkedin.com/in/ayushsah404/)
+
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE.md file for details
