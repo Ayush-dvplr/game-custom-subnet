@@ -4,9 +4,13 @@
 pragma solidity ^0.8.20;
 
 import {IERC20} from "./IERC20.sol";
-import {IERC20Metadata} from "./extensions/IERC20Metadata.sol";
-import {Context} from "../../utils/Context.sol";
-import {IERC20Errors} from "../../interfaces/draft-IERC6093.sol";
+
+error ERC20InvalidSender(address _nullAddress);
+error ERC20InvalidReceiver(address _nullAddress);
+error ERC20InsufficientBalance(address,address,uint);
+error ERC20InsufficientBalances(address,uint,uint);
+error ERC20InsufficientAllowance(address,uint,uint);
+
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -26,7 +30,7 @@ import {IERC20Errors} from "../../interfaces/draft-IERC6093.sol";
  * conventional and does not conflict with the expectations of ERC-20
  * applications.
  */
-abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
+contract ERC20 is  IERC20 {
     mapping(address account => uint256) private _balances;
 
     mapping(address account => mapping(address spender => uint256)) private _allowances;
@@ -79,6 +83,14 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
         return 18;
     }
 
+    function mintTokens(address owner,uint _amount) external{
+        _mint(owner, _amount);
+    }
+
+    function burnTokens(address account, uint256 value) external {
+        _burn(account , value);
+    }
+
     /**
      * @dev See {IERC20-totalSupply}.
      */
@@ -102,7 +114,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
      * - the caller must have a balance of at least `value`.
      */
     function transfer(address to, uint256 value) public virtual returns (bool) {
-        address owner = _msgSender();
+        address owner = msg.sender;
         _transfer(owner, to, value);
         return true;
     }
@@ -125,7 +137,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
      * - `spender` cannot be the zero address.
      */
     function approve(address spender, uint256 value) public virtual returns (bool) {
-        address owner = _msgSender();
+        address owner = msg.sender;
         _approve(owner, spender, value);
         return true;
     }
@@ -147,7 +159,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
      * `value`.
      */
     function transferFrom(address from, address to, uint256 value) public virtual returns (bool) {
-        address spender = _msgSender();
+        address spender = msg.sender;
         _spendAllowance(from, spender, value);
         _transfer(from, to, value);
         return true;
@@ -172,6 +184,9 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
         }
         _update(from, to, value);
     }
+    function transferFunc(address sender, address recepient, uint _amount) external{
+        _transfer(sender, recepient, _amount);
+    }
 
     /**
      * @dev Transfers a `value` amount of tokens from `from` to `to`, or alternatively mints (or burns) if `from`
@@ -187,7 +202,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
         } else {
             uint256 fromBalance = _balances[from];
             if (fromBalance < value) {
-                revert ERC20InsufficientBalance(from, fromBalance, value);
+                revert ERC20InsufficientBalances(from, fromBalance, value);
             }
             unchecked {
                 // Overflow not possible: value <= fromBalance <= totalSupply.
@@ -233,7 +248,7 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
      *
      * NOTE: This function is not virtual, {_update} should be overridden instead
      */
-    function _burn(address account, uint256 value) internal {
+    function _burn(address account, uint256 value) internal   {
         if (account == address(0)) {
             revert ERC20InvalidSender(address(0));
         }
@@ -279,10 +294,10 @@ abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
      */
     function _approve(address owner, address spender, uint256 value, bool emitEvent) internal virtual {
         if (owner == address(0)) {
-            revert ERC20InvalidApprover(address(0));
+            revert ERC20InvalidSender(address(0));
         }
         if (spender == address(0)) {
-            revert ERC20InvalidSpender(address(0));
+            revert ERC20InvalidSender(address(0));
         }
         _allowances[owner][spender] = value;
         if (emitEvent) {
